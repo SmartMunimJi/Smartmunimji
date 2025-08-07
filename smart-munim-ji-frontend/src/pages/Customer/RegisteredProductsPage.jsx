@@ -1,39 +1,44 @@
-// src/pages/Customer/RegisteredProductsPage.js
+// src/pages/Customer/RegisteredProductsPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
 import { formatDateForDisplay } from "../../utils/helpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
+import { useAuth } from "../../hooks/useAuth";
 
 const RegisteredProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // API Endpoint: GET /sm/customer/products
         const response = await apiService.get("/customer/products");
         if (response.data.status === "success") {
-          setProducts(response.data.data.products);
+          // Ensure products is always an array, even if the API returns null/undefined
+          setProducts(response.data.data.products || []);
         } else {
           setMessage({ type: "error", text: "Could not fetch your products." });
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        // Handle authentication errors gracefully
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout();
           navigate("/login");
+        } else {
+          setMessage({
+            type: "error",
+            text: "An error occurred while fetching your products.",
+          });
         }
-        setMessage({
-          type: "error",
-          text: "An error occurred while fetching your products.",
-        });
       } finally {
         setIsLoading(false);
       }
@@ -48,15 +53,37 @@ const RegisteredProductsPage = () => {
 
   return (
     <div className="card">
-      <h2>My Registered Products</h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
+        <h2>My Registered Products</h2>
+        <button onClick={() => navigate("/customer/products/register")}>
+          Register New Product
+        </button>
+      </div>
+
       {message && <AlertMessage message={message.text} type={message.type} />}
 
-      {products.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "30px" }}>
-          <p>You have not registered any products yet.</p>
-          <Link to="/customer/products/register">
-            <button>Register Your First Product</button>
-          </Link>
+      {/* Handle the case where the user has no products yet */}
+      {!isLoading && products.length === 0 ? (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "40px",
+            border: "2px dashed var(--border-color)",
+            borderRadius: "8px",
+          }}
+        >
+          <h3>No Products Found</h3>
+          <p>
+            You have not registered any products yet. Click the button above to
+            get started!
+          </p>
         </div>
       ) : (
         <div className="table-container">
@@ -92,6 +119,7 @@ const RegisteredProductsPage = () => {
                   </td>
                   <td>
                     {product.isWarrantyEligible ? (
+                      // Pass the product name in state to the claim page for a better UX
                       <Link
                         to={`/customer/claim/${product.registeredProductId}`}
                         state={{ productName: product.productName }}

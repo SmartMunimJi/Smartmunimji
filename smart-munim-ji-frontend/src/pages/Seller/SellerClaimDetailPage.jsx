@@ -1,9 +1,9 @@
-// src/pages/Seller/SellerClaimDetailPage.js
+// src/pages/Seller/SellerClaimDetailPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { formatDateForDisplay } from "../../utils/helpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
@@ -13,10 +13,12 @@ const SellerClaimDetailPage = () => {
   const [claim, setClaim] = useState(null);
   const [newStatus, setNewStatus] = useState("");
   const [responseNotes, setResponseNotes] = useState("");
+
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   const claimStatusOptions = [
@@ -41,7 +43,10 @@ const SellerClaimDetailPage = () => {
           setMessage({ type: "error", text: "Could not fetch claim details." });
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout();
           navigate("/login");
         } else {
@@ -70,8 +75,7 @@ const SellerClaimDetailPage = () => {
 
       if (response.data.status === "success") {
         setMessage({ type: "success", text: "Claim updated successfully!" });
-        // Optionally re-fetch data or update local state
-        setClaim(response.data.data.updatedClaim);
+        setClaim(response.data.data.updatedClaim); // Update local state with fresh data from response
       } else {
         setMessage({
           type: "error",
@@ -89,7 +93,17 @@ const SellerClaimDetailPage = () => {
   };
 
   if (isLoading) return <LoadingSpinner />;
-  if (!claim) return <AlertMessage message="Claim not found." type="error" />;
+
+  if (!claim) {
+    return (
+      <div className="card">
+        <AlertMessage
+          message={message?.text || "Claim not found or could not be loaded."}
+          type="error"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="card" style={{ maxWidth: "900px", margin: "40px auto" }}>
@@ -103,6 +117,8 @@ const SellerClaimDetailPage = () => {
           gridTemplateColumns: "1fr 1fr",
           gap: "20px",
           marginBottom: "30px",
+          borderBottom: "1px solid var(--border-color)",
+          paddingBottom: "20px",
         }}
       >
         <div>
@@ -135,13 +151,14 @@ const SellerClaimDetailPage = () => {
           </p>
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
-          <h4>Issue Description</h4>
+          <h4>Customer's Issue Description</h4>
           <p
             style={{
               whiteSpace: "pre-wrap",
               backgroundColor: "#f9f9f9",
               padding: "15px",
               borderRadius: "4px",
+              border: "1px solid var(--border-color)",
             }}
           >
             {claim.issueDescription}
@@ -150,20 +167,10 @@ const SellerClaimDetailPage = () => {
       </div>
 
       {/* Update Form Section */}
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          borderTop: "1px solid var(--border-color)",
-          paddingTop: "20px",
-        }}
-      >
+      <form onSubmit={handleSubmit}>
         <h3>Update Claim Status</h3>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "20px",
-          }}
+          style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}
         >
           <div>
             <label htmlFor="claimStatus">Claim Status</label>
@@ -179,18 +186,18 @@ const SellerClaimDetailPage = () => {
               ))}
             </select>
           </div>
-        </div>
-        <div style={{ marginTop: "20px" }}>
-          <label htmlFor="responseNotes">
-            Your Response Notes (visible to customer)
-          </label>
-          <textarea
-            id="responseNotes"
-            rows="5"
-            value={responseNotes}
-            onChange={(e) => setResponseNotes(e.target.value)}
-            placeholder="e.g., Please bring the item to our store for inspection."
-          />
+          <div>
+            <label htmlFor="responseNotes">
+              Your Response Notes (visible to customer)
+            </label>
+            <textarea
+              id="responseNotes"
+              rows="5"
+              value={responseNotes}
+              onChange={(e) => setResponseNotes(e.target.value)}
+              placeholder="e.g., Please bring the item to our store for inspection."
+            />
+          </div>
         </div>
         <button
           type="submit"

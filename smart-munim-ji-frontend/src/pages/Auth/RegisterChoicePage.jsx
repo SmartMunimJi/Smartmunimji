@@ -1,4 +1,4 @@
-// src/pages/Auth/RegisterChoicePage.js
+// src/pages/Auth/RegisterChoicePage.jsx
 
 import React from "react";
 import { Link } from "react-router-dom";
@@ -7,7 +7,7 @@ const RegisterChoicePage = () => {
   return (
     <div
       className="card"
-      style={{ maxWidth: "600px", margin: "40px auto", textAlign: "center" }}
+      style={{ maxWidth: "600px", margin: "60px auto", textAlign: "center" }}
     >
       <h2>How would you like to register?</h2>
       <p style={{ color: "var(--text-light)", marginBottom: "30px" }}>
@@ -16,12 +16,16 @@ const RegisterChoicePage = () => {
 
       <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
         <Link to="/register/customer">
-          <button style={{ width: "100%", padding: "15px 25px" }}>
+          <button
+            style={{ width: "100%", padding: "15px 25px", fontSize: "18px" }}
+          >
             Register as a Customer
           </button>
         </Link>
         <Link to="/register/seller">
-          <button style={{ width: "100%", padding: "15px 25px" }}>
+          <button
+            style={{ width: "100%", padding: "15px 25px", fontSize: "18px" }}
+          >
             Register as a Seller
           </button>
         </Link>

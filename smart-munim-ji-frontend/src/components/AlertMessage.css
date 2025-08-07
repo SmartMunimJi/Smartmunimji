@@ -1,4 +1,5 @@
 /* src/components/AlertMessage.css */
+
 .alert-message {
     padding: 15px;
     margin-bottom: 20px;
@@ -12,18 +13,24 @@
 
 .alert-success {
     background-color: #d4edda;
+    /* Light green */
     border-color: #c3e6cb;
     color: #155724;
+    /* Dark green */
 }
 
 .alert-error {
     background-color: #f8d7da;
+    /* Light red */
     border-color: #f5c6cb;
     color: #721c24;
+    /* Dark red */
 }
 
 .alert-info {
     background-color: #d1ecf1;
+    /* Light blue */
     border-color: #bee5eb;
     color: #0c5460;
+    /* Dark blue */
 }

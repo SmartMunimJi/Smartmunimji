@@ -1,12 +1,13 @@
-// src/components/Navbar.js
+// src/components/Navbar.jsx
 
-import React, { useContext } from "react";
+import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+// This is the corrected line:
+import { useAuth } from "../hooks/useAuth.js";
 import "./Navbar.css";
 
 const Navbar = () => {
-  const { isAuthenticated, userRole, logout } = useContext(AuthContext);
+  const { isAuthenticated, userRole, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {

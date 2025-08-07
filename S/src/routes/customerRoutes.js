@@ -110,7 +110,7 @@ router.post("/products/register", async (req, res, next) => {
 
     // --- External Seller API Call for Validation ---
     let validationResponseData;
-    const validationUrl = `${seller.api_base_url}/sm/validate-purchase`; // Updated path as per requirement
+    const validationUrl = `${seller.api_base_url}`; // Updated path as per requirement
     logger.info(
       `Calling Seller API: POST ${validationUrl} for order ${orderId}`
     );

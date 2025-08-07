@@ -1,18 +1,18 @@
-// src/pages/Customer/ClaimStatusPage.js
+// src/pages/Customer/ClaimStatusPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { formatDateForDisplay } from "../../utils/helpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
 
 const ClaimStatusPage = () => {
-  const [claims, setClaims] = useState([]);
+  const [claims, setClaims] = useState([]); // Initialized as an empty array
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,12 +21,17 @@ const ClaimStatusPage = () => {
         // API Endpoint: GET /sm/customer/claims
         const response = await apiService.get("/customer/claims");
         if (response.data.status === "success") {
-          setClaims(response.data.data.claims);
+          // Ensure we set an array, even if the API returns null/undefined
+          setClaims(response.data.data.claims || []);
         } else {
           setMessage({ type: "error", text: "Could not fetch your claims." });
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        // ROBUST ERROR HANDLING
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout();
           navigate("/login");
         } else {
@@ -90,7 +95,9 @@ const ClaimStatusPage = () => {
               {claims.map((claim) => (
                 <tr key={claim.claimId}>
                   <td>{claim.productName}</td>
-                  <td>{claim.issueDescription}</td>
+                  <td style={{ whiteSpace: "pre-wrap", minWidth: "200px" }}>
+                    {claim.issueDescription}
+                  </td>
                   <td>{formatDateForDisplay(claim.claimedAt)}</td>
                   <td>
                     <span
@@ -102,7 +109,9 @@ const ClaimStatusPage = () => {
                       {claim.claimStatus}
                     </span>
                   </td>
-                  <td>{claim.sellerResponseNotes || "No response yet."}</td>
+                  <td style={{ whiteSpace: "pre-wrap", minWidth: "200px" }}>
+                    {claim.sellerResponseNotes || "No response yet."}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -1,13 +1,14 @@
-// src/pages/Customer/CustomerProfilePage.js
+// src/pages/Customer/CustomerProfilePage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
 
 const CustomerProfilePage = () => {
+  // Initial state for profile is an object with empty strings
   const [profile, setProfile] = useState({
     name: "",
     address: "",
@@ -17,7 +18,7 @@ const CustomerProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,12 +28,22 @@ const CustomerProfilePage = () => {
         // API Endpoint: GET /sm/customer/profile
         const response = await apiService.get("/customer/profile");
         if (response.data.status === "success") {
-          setProfile(response.data.data.profile);
+          // Set profile data, providing defaults if any fields are null
+          setProfile({
+            name: response.data.data.profile.name || "",
+            address: response.data.data.profile.address || "",
+            email: response.data.data.profile.email || "",
+            phoneNumber: response.data.data.profile.phoneNumber || "",
+          });
         } else {
           setMessage({ type: "error", text: "Could not fetch your profile." });
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        // ROBUST ERROR HANDLING
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout();
           navigate("/login");
         } else {

@@ -1,16 +1,21 @@
-// src/pages/Admin/AdminDashboard.js
+// src/pages/Admin/AdminDashboard.jsx
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth.js"; // Using the hook for consistency, though not strictly needed here
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  // const { userRole } = useAuth(); // Example: could be used for a personalized welcome message
 
   return (
     <div>
       <div className="card" style={{ marginBottom: "30px" }}>
         <h2>Administrator Dashboard</h2>
-        <p>Platform management and oversight tools.</p>
+        <p>
+          Platform management and oversight tools. From here you can manage
+          users, sellers, and monitor platform activity.
+        </p>
       </div>
 
       <div

@@ -5,19 +5,22 @@
     justify-content: center;
     align-items: center;
     padding: 20px;
+    width: 100%;
+    height: 100%;
 }
 
 .loading-spinner {
     width: 50px;
     height: 50px;
     border: 5px solid var(--light-purple);
-    /* Light circle */
+    /* The light track of the spinner */
     border-top: 5px solid var(--primary-purple);
-    /* Dark portion that spins */
+    /* The colored part that moves */
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
+/* The animation keyframes that rotate the element */
 @keyframes spin {
     0% {
         transform: rotate(0deg);

@@ -4,11 +4,9 @@
 :root {
   --primary-purple: #6A0DAD;
   --light-purple: #E0BBE4;
-  /* For light accents, like table row hover */
   --disabled-purple: #9b72b8;
   --white: #FFFFFF;
   --off-white: #F8F8F8;
-  /* Main background color */
   --text-dark: #333333;
   --text-light: #666666;
   --border-color: #DDDDDD;
@@ -94,7 +92,6 @@ select {
   width: 100%;
   padding: 12px;
   margin-bottom: 5px;
-  /* Reduced margin to bring error message closer */
   border: 1px solid var(--border-color);
   border-radius: 4px;
   box-sizing: border-box;
@@ -119,13 +116,11 @@ select:focus {
   font-size: 0.875em;
   margin-top: 0;
   margin-bottom: 15px;
-  /* Keep space after the error message */
 }
 
 /* --- Table Styling --- */
 .table-container {
   overflow-x: auto;
-  /* Enables horizontal scroll on smaller screens */
   width: 100%;
 }
 
@@ -148,7 +143,6 @@ table th {
   font-weight: bold;
 }
 
-/* Alternating row colors */
 table tbody tr:nth-child(even) {
   background-color: #f9f9f9;
 }

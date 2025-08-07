@@ -1,9 +1,9 @@
-// src/pages/Seller/SellerClaimsPage.js
+// src/pages/Seller/SellerClaimsPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { formatDateForDisplay } from "../../utils/helpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
@@ -12,7 +12,7 @@ const SellerClaimsPage = () => {
   const [claims, setClaims] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,12 +21,17 @@ const SellerClaimsPage = () => {
         // API Endpoint: GET /sm/seller/claims
         const response = await apiService.get("/seller/claims");
         if (response.data.status === "success") {
-          setClaims(response.data.data.claims);
+          // Ensure that we set an empty array if the data is null/undefined
+          setClaims(response.data.data.claims || []);
         } else {
           setMessage({ type: "error", text: "Could not fetch claims." });
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        // Robust error handling for auth and other issues
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout();
           navigate("/login");
         } else {
@@ -55,6 +60,7 @@ const SellerClaimsPage = () => {
         return "var(--error-red)";
       case "IN_PROGRESS":
         return "#007bff";
+      case "REQUESTED":
       default:
         return "var(--text-light)";
     }
@@ -65,9 +71,13 @@ const SellerClaimsPage = () => {
   return (
     <div className="card">
       <h2>Manage Warranty Claims</h2>
+      <p style={{ color: "var(--text-light)" }}>
+        Click on any claim to view details and update its status.
+      </p>
+
       {message && <AlertMessage message={message.text} type={message.type} />}
 
-      {claims.length === 0 ? (
+      {claims.length === 0 && !isLoading ? (
         <p style={{ textAlign: "center", padding: "20px" }}>
           You have no warranty claims to manage at this time.
         </p>

@@ -1,0 +1,64 @@
+/* src/pages/HomePage.css */
+
+.homepage-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 40px;
+}
+
+.hero-card {
+    max-width: 900px;
+    width: 100%;
+    text-align: center;
+}
+
+.hero-card h1 {
+    font-size: 2.5em;
+}
+
+.subtitle {
+    font-size: 1.25em;
+    color: var(--text-light);
+    margin-bottom: 40px;
+}
+
+.features-section {
+    display: flex;
+    gap: 30px;
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+.feature-box {
+    flex: 1;
+    padding: 20px;
+    background-color: var(--off-white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.feature-box h3 {
+    margin-top: 0;
+    border-bottom: 2px solid var(--primary-purple);
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.cta-button {
+    padding: 15px 40px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .features-section {
+        flex-direction: column;
+    }
+
+    .hero-card h1 {
+        font-size: 2em;
+    }
+}

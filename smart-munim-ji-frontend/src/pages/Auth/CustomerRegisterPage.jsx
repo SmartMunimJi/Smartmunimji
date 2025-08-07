@@ -1,9 +1,9 @@
-// src/pages/Auth/CustomerRegisterPage.js
+// src/pages/Auth/CustomerRegisterPage.jsx
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { CUSTOMER_TERMS } from "../../utils/termsAndConditions";
+import { CUSTOMER_TERMS } from "../../utils/termsAndConditions.js";
 import AlertMessage from "../../components/AlertMessage";
 
 const CustomerRegisterPage = () => {
@@ -22,14 +22,17 @@ const CustomerRegisterPage = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    // Clear specific error on change for better UX
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: null });
+    }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name) newErrors.name = "Name is required.";
-    if (!formData.email) newErrors.email = "Email is required.";
+    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.email.trim()) newErrors.email = "Email is required.";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
       newErrors.email = "Email address is invalid.";
     if (!formData.password) newErrors.password = "Password is required.";
@@ -37,9 +40,9 @@ const CustomerRegisterPage = () => {
       newErrors.password = "Password must be at least 6 characters.";
     if (formData.password !== formData.confirmPassword)
       newErrors.confirmPassword = "Passwords do not match.";
-    if (!formData.phoneNumber)
+    if (!formData.phoneNumber.trim())
       newErrors.phoneNumber = "Phone number is required.";
-    if (!formData.address) newErrors.address = "Address is required.";
+    if (!formData.address.trim()) newErrors.address = "Address is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -49,26 +52,25 @@ const CustomerRegisterPage = () => {
     e.preventDefault();
     setMessage(null);
 
-    if (!validateForm() || !agreedToTerms) {
-      if (!agreedToTerms) {
-        setMessage({
-          type: "error",
-          text: "You must agree to the Terms & Conditions to register.",
-        });
-      }
+    if (!validateForm()) return;
+    if (!agreedToTerms) {
+      setMessage({
+        type: "error",
+        text: "You must agree to the Terms & Conditions to register.",
+      });
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // API Endpoint: POST /sm/auth/register/customer
+      const { name, email, password, phoneNumber, address } = formData;
       const response = await apiService.post("/auth/register/customer", {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address,
+        name,
+        email,
+        password,
+        phoneNumber,
+        address,
       });
 
       if (response.data.status === "success") {
@@ -77,11 +79,6 @@ const CustomerRegisterPage = () => {
           text: "Registration successful! You will be redirected to login.",
         });
         setTimeout(() => navigate("/login"), 3000);
-      } else {
-        setMessage({
-          type: "error",
-          text: response.data.message || "Registration failed.",
-        });
       }
     } catch (error) {
       const errorMsg =
@@ -102,7 +99,6 @@ const CustomerRegisterPage = () => {
       <form onSubmit={handleSubmit} noValidate>
         {message && <AlertMessage message={message.text} type={message.type} />}
 
-        {/* Form Fields */}
         <div>
           <label htmlFor="name">Full Name</label>
           <input
@@ -209,7 +205,7 @@ const CustomerRegisterPage = () => {
             id="agreeToTerms"
             checked={agreedToTerms}
             onChange={(e) => setAgreedToTerms(e.target.checked)}
-            style={{ marginRight: "10px" }}
+            style={{ marginRight: "10px", width: "auto" }}
           />
           <label htmlFor="agreeToTerms">
             I have read and agree to the Customer Terms & Conditions.

@@ -5,6 +5,11 @@
     padding: 15px 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-bottom: 2px solid var(--primary-purple);
+    position: sticky;
+    /* Makes the header stick to the top on scroll */
+    top: 0;
+    z-index: 1000;
+    /* Ensures it stays above other content */
 }
 
 .header-container {
@@ -23,4 +28,5 @@
     margin: 0;
     font-size: 24px;
     color: var(--primary-purple);
+    font-weight: bold;
 }

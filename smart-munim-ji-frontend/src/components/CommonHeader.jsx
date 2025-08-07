@@ -1,22 +1,24 @@
-// src/components/CommonHeader.js
+// src/components/CommonHeader.jsx
 
 import React from "react";
 import { Link } from "react-router-dom";
-import Navbar from "./Navbar"; // We'll create Navbar next
-import "./CommonHeader.css"; // We will create this small CSS file for specific header styles
+import Navbar from "./Navbar"; // This component will handle the dynamic navigation links
+import "./CommonHeader.css"; // Styles specific to the header layout
 
+/**
+ * The main header component for the application.
+ * It includes the site logo/name and the primary navigation bar.
+ */
 const CommonHeader = () => {
   return (
     <header className="app-header">
       <div className="header-container">
         <Link to="/" className="logo-link">
-          {/* You can replace this text with an img tag for your logo later */}
-          <img
-            src="smart-munim-ji-frontend\public\icon.png"
-            alt="Smart Munim Ji Logo"
-          />
+          {/* This text can be replaced with an <img /> tag for a visual logo */}
           <h1 className="logo-text">Smart Munim Ji</h1>
         </Link>
+
+        {/* The Navbar component is responsible for rendering the correct links */}
         <Navbar />
       </div>
     </header>

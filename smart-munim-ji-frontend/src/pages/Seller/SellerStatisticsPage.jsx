@@ -1,15 +1,25 @@
-// src/pages/Seller/SellerStatisticsPage.js
+// src/pages/Seller/SellerStatisticsPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
 
+// A local, reusable component for displaying a single statistic.
 const StatCard = ({ title, value }) => (
   <div className="card" style={{ textAlign: "center" }}>
-    <h3 style={{ color: "var(--text-light)", fontSize: "1.1em" }}>{title}</h3>
+    <h3
+      style={{
+        color: "var(--text-light)",
+        fontSize: "1.1em",
+        textTransform: "uppercase",
+        letterSpacing: "1px",
+      }}
+    >
+      {title}
+    </h3>
     <p
       style={{
         color: "var(--primary-purple)",
@@ -27,7 +37,7 @@ const SellerStatisticsPage = () => {
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,7 +51,10 @@ const SellerStatisticsPage = () => {
           setMessage({ type: "error", text: "Could not fetch statistics." });
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout();
           navigate("/login");
         } else {

@@ -1,9 +1,9 @@
-// src/pages/Seller/SellerProductsPage.js
+// src/pages/Seller/SellerProductsPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import { formatDateForDisplay } from "../../utils/helpers";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
@@ -12,7 +12,7 @@ const SellerProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,12 +21,17 @@ const SellerProductsPage = () => {
         // API Endpoint: GET /sm/seller/products
         const response = await apiService.get("/seller/products");
         if (response.data.status === "success") {
-          setProducts(response.data.data.products);
+          // Ensure that we set an empty array if the data is null/undefined
+          setProducts(response.data.data.products || []);
         } else {
           setMessage({ type: "error", text: "Could not fetch products." });
         }
       } catch (error) {
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        // Robust error handling for auth and other issues
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           logout();
           navigate("/login");
         } else {
@@ -47,9 +52,13 @@ const SellerProductsPage = () => {
   return (
     <div className="card">
       <h2>Customer Registered Products</h2>
+      <p style={{ color: "var(--text-light)" }}>
+        A list of all products that customers have registered with your shop.
+      </p>
+
       {message && <AlertMessage message={message.text} type={message.type} />}
 
-      {products.length === 0 ? (
+      {products.length === 0 && !isLoading ? (
         <p style={{ textAlign: "center", padding: "20px" }}>
           No customers have registered products with your shop yet.
         </p>

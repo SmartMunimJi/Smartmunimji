@@ -6,7 +6,7 @@
     padding: 20px;
     text-align: center;
     margin-top: auto;
-    /* Pushes the footer to the bottom of the content */
+    /* This is the key property that pushes the footer down in a flex column layout */
 }
 
 .footer-container {
@@ -22,6 +22,7 @@
 .app-footer a {
     color: var(--light-purple);
     text-decoration: none;
+    transition: text-decoration 0.2s ease-in-out;
 }
 
 .app-footer a:hover {

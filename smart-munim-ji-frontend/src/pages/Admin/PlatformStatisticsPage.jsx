@@ -1,13 +1,13 @@
-// src/pages/Admin/PlatformStatisticsPage.js
+// src/pages/Admin/PlatformStatisticsPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth.js";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
 
-// Reusable StatCard component for this page
+// Reusable StatCard component for a clean and consistent UI
 const StatCard = ({ title, value, subtext }) => (
   <div className="card" style={{ textAlign: "center" }}>
     <h3
@@ -37,7 +37,7 @@ const PlatformStatisticsPage = () => {
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,18 +45,41 @@ const PlatformStatisticsPage = () => {
       try {
         // API Endpoint: GET /sm/admin/statistics
         const response = await apiService.get("/admin/statistics");
-        setStats(response.data.data.statistics);
+        if (response.data.status === "success") {
+          setStats(response.data.data.statistics);
+        } else {
+          setMessage({
+            type: "error",
+            text: "Could not fetch statistics data.",
+          });
+        }
       } catch (error) {
-        if (error.response?.status === 401) logout();
-        setMessage({ type: "error", text: "Failed to fetch statistics." });
+        // ROBUST ERROR HANDLING:
+        // If the token is invalid/expired, log out and redirect to the login page.
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
+          logout();
+          navigate("/login");
+        } else {
+          // For all other errors, display a user-friendly message.
+          setMessage({
+            type: "error",
+            text: "An error occurred while fetching platform statistics.",
+          });
+        }
       } finally {
         setIsLoading(false);
       }
     };
-    fetchStats();
-  }, [logout]);
 
-  if (isLoading) return <LoadingSpinner />;
+    fetchStats();
+  }, [logout, navigate]); // Dependencies for the effect
+
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div>
@@ -106,6 +129,10 @@ const PlatformStatisticsPage = () => {
                 title="Deactivated"
                 value={stats.totalSellers.DEACTIVATED}
               />
+              <StatCard
+                title="Suspended"
+                value={stats.totalSellers.SUSPENDED}
+              />
             </div>
           </div>
 
@@ -127,12 +154,13 @@ const PlatformStatisticsPage = () => {
                 value={stats.totalClaims.IN_PROGRESS}
               />
               <StatCard title="Resolved" value={stats.totalClaims.RESOLVED} />
-              <StatCard title="Denied" value={stats.totalClaims.DENIED} />
+              <Stat_Card title="Denied" value={stats.totalClaims.DENIED} />
             </div>
           </div>
         </>
       ) : (
-        !message && <p>Statistics data is not available.</p>
+        // Only show this message if there wasn't a specific error
+        !message && <p>Statistics data could not be loaded.</p>
       )}
     </div>
   );

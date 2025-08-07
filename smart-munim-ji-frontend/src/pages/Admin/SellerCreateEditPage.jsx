@@ -1,16 +1,16 @@
-// src/pages/Admin/SellerCreateEditPage.js
+// src/pages/Admin/SellerCreateEditPage.jsx
 
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth.js";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import AlertMessage from "../../components/AlertMessage";
 
 const SellerCreateEditPage = () => {
-  const { sellerId } = useParams();
+  const { sellerId } = useParams(); // This will be defined if we are editing
   const navigate = useNavigate();
-  const { logout } = useContext(AuthContext);
+  const { logout } = useAuth();
 
   const isEditMode = Boolean(sellerId);
 
@@ -31,27 +31,36 @@ const SellerCreateEditPage = () => {
     if (isEditMode) {
       const fetchSellerData = async () => {
         try {
-          // API Endpoint: GET /sm/admin/sellers/:sellerId (This is a conceptual endpoint, assuming it exists)
-          // For now, we'll get the full list and filter, but a direct GET is better.
-          const response = await apiService.get(`/admin/sellers`);
+          // A more ideal backend would have GET /sm/admin/sellers/:sellerId
+          // but we can work with the list endpoint.
+          const response = await apiService.get("/admin/sellers");
           const seller = response.data.data.sellers.find(
             (s) => s.sellerId === Number(sellerId)
           );
+
           if (seller) {
+            // Pre-populate the form with existing data
             setFormData(seller);
           } else {
             setMessage({ type: "error", text: "Seller not found." });
           }
         } catch (error) {
-          if (error.response?.status === 401) logout();
-          setMessage({ type: "error", text: "Failed to fetch seller data." });
+          if (
+            error.response?.status === 401 ||
+            error.response?.status === 403
+          ) {
+            logout();
+            navigate("/login");
+          } else {
+            setMessage({ type: "error", text: "Failed to fetch seller data." });
+          }
         } finally {
           setIsLoading(false);
         }
       };
       fetchSellerData();
     }
-  }, [sellerId, isEditMode, logout]);
+  }, [sellerId, isEditMode, logout, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -62,6 +71,7 @@ const SellerCreateEditPage = () => {
     setIsSubmitting(true);
     setMessage(null);
 
+    // Determine which API call to make
     const apiCall = isEditMode
       ? apiService.put(`/admin/sellers/${sellerId}`, formData) // PUT /sm/admin/sellers/:sellerId
       : apiService.post("/admin/sellers", formData); // POST /sm/admin/sellers
@@ -71,7 +81,9 @@ const SellerCreateEditPage = () => {
       if (response.data.status === "success") {
         setMessage({
           type: "success",
-          text: `Seller ${isEditMode ? "updated" : "created"} successfully!`,
+          text: `Seller ${
+            isEditMode ? "updated" : "created"
+          } successfully! Redirecting...`,
         });
         setTimeout(() => navigate("/admin/sellers"), 2000);
       } else {
@@ -83,7 +95,7 @@ const SellerCreateEditPage = () => {
     } catch (error) {
       setMessage({
         type: "error",
-        text: error.response?.data?.message || "An error occurred.",
+        text: error.response?.data?.message || "An unexpected error occurred.",
       });
     } finally {
       setIsSubmitting(false);
@@ -94,8 +106,8 @@ const SellerCreateEditPage = () => {
 
   return (
     <div className="card" style={{ maxWidth: "800px", margin: "40px auto" }}>
-      <h2>{isEditMode ? "Edit Seller" : "Create New Seller"}</h2>
-      <form onSubmit={handleSubmit}>
+      <h2>{isEditMode ? "Edit Seller Details" : "Create New Seller"}</h2>
+      <form onSubmit={handleSubmit} noValidate>
         {message && <AlertMessage message={message.text} type={message.type} />}
 
         <h3>Business Information</h3>
@@ -107,12 +119,12 @@ const SellerCreateEditPage = () => {
           }}
         >
           <div>
-            <label htmlFor="shopName">Shop Name</label>
+            <label htmlFor="shopName">Shop Name*</label>
             <input
               type="text"
               id="shopName"
               name="shopName"
-              value={formData.shopName}
+              value={formData.shopName || ""}
               onChange={handleChange}
               required
             />
@@ -128,12 +140,12 @@ const SellerCreateEditPage = () => {
             />
           </div>
           <div>
-            <label htmlFor="businessEmail">Business Email</label>
+            <label htmlFor="businessEmail">Business Email*</label>
             <input
               type="email"
               id="businessEmail"
               name="businessEmail"
-              value={formData.businessEmail}
+              value={formData.businessEmail || ""}
               onChange={handleChange}
               required
             />
@@ -150,12 +162,12 @@ const SellerCreateEditPage = () => {
           </div>
         </div>
         <div style={{ marginTop: "20px" }}>
-          <label htmlFor="address">Business Address</label>
+          <label htmlFor="address">Business Address*</label>
           <input
             type="text"
             id="address"
             name="address"
-            value={formData.address}
+            value={formData.address || ""}
             onChange={handleChange}
             required
           />
@@ -170,7 +182,7 @@ const SellerCreateEditPage = () => {
           }}
         >
           <div>
-            <label htmlFor="apiBaseUrl">API Base URL</label>
+            <label htmlFor="apiBaseUrl">API Base URL*</label>
             <input
               type="text"
               id="apiBaseUrl"
@@ -181,7 +193,7 @@ const SellerCreateEditPage = () => {
             />
           </div>
           <div>
-            <label htmlFor="apiKey">API Key</label>
+            <label htmlFor="apiKey">API Key*</label>
             <input
               type="text"
               id="apiKey"

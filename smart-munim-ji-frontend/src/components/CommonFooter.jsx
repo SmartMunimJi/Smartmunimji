@@ -1,6 +1,7 @@
-// src/components/CommonFooter.js
+// src/components/CommonFooter.jsx
 
 import React from "react";
+import { Link } from "react-router-dom";
 import "./CommonFooter.css";
 
 const CommonFooter = () => {
@@ -11,8 +12,9 @@ const CommonFooter = () => {
       <div className="footer-container">
         <p>&copy; {currentYear} Smart Munim Ji. All Rights Reserved.</p>
         <p>
-          <a href="/terms">Terms of Service</a> |{" "}
-          <a href="/privacy">Privacy Policy</a>
+          {/* These links are placeholders. You can create pages for them later. */}
+          <Link to="/terms-of-service">Terms of Service</Link> |{" "}
+          <Link to="/privacy-policy">Privacy Policy</Link>
         </p>
       </div>
     </footer>

@@ -1,18 +1,18 @@
-// src/pages/Auth/LoginPage.js
+// src/pages/Auth/LoginPage.jsx
 
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
-import { AuthContext } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 import AlertMessage from "../../components/AlertMessage";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState(null); // To store { type: 'error'/'success', text: '...' }
+  const [message, setMessage] = useState(null);
 
-  const { login } = useContext(AuthContext);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const getDashboardPath = (role) => {
@@ -42,21 +42,18 @@ const LoginPage = () => {
 
       if (response.data.status === "success") {
         const { jwtToken, userId, role } = response.data.data;
-        // Use the login function from AuthContext
         login(jwtToken, userId, role);
-        // Navigate to the role-specific dashboard
         navigate(getDashboardPath(role));
       } else {
-        // Handle cases where API returns success but with a fail status
         setMessage({
           type: "error",
           text: response.data.message || "Login failed. Please try again.",
         });
       }
     } catch (error) {
-      // Handle API call errors (e.g., 401, 404, 500)
       const errorMsg =
-        error.response?.data?.message || "An unexpected error occurred.";
+        error.response?.data?.message ||
+        "An unexpected error occurred. Please try again.";
       setMessage({ type: "error", text: errorMsg });
     } finally {
       setIsLoading(false);

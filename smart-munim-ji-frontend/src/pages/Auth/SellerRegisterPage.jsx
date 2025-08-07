@@ -1,4 +1,4 @@
-// src/pages/Auth/SellerRegisterPage.js
+// src/pages/Auth/SellerRegisterPage.jsx
 
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,6 +19,7 @@ const SellerRegisterPage = () => {
     businessPhoneNumber: "",
     address: "", // Business Address
   });
+
   const [errors, setErrors] = useState({});
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +32,6 @@ const SellerRegisterPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    // Required fields validation
     if (!formData.name) newErrors.name = "Manager's name is required.";
     if (!formData.email) newErrors.email = "Login email is required.";
     else if (!/\S+@\S+\.\S+/.test(formData.email))
@@ -56,13 +56,14 @@ const SellerRegisterPage = () => {
     e.preventDefault();
     setMessage(null);
 
-    if (!validateForm() || !agreedToTerms) {
-      if (!agreedToTerms) {
-        setMessage({
-          type: "error",
-          text: "You must agree to the Terms & Conditions to register.",
-        });
-      }
+    if (!validateForm()) {
+      return; // Validation errors will be displayed
+    }
+    if (!agreedToTerms) {
+      setMessage({
+        type: "error",
+        text: "You must agree to the Terms & Conditions to register.",
+      });
       return;
     }
 
@@ -70,12 +71,22 @@ const SellerRegisterPage = () => {
 
     try {
       // API Endpoint: POST /sm/auth/register/seller
-      const response = await apiService.post("/auth/register/seller", formData);
+      const response = await apiService.post("/auth/register/seller", {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phoneNumber,
+        shopName: formData.shopName,
+        businessName: formData.businessName,
+        businessEmail: formData.businessEmail,
+        businessPhoneNumber: formData.businessPhoneNumber,
+        address: formData.address,
+      });
 
       if (response.data.status === "success") {
         setMessage({
           type: "success",
-          text: "Registration successful! Your account is pending admin approval. You will be redirected to login.",
+          text: "Registration successful! Your account is pending admin approval. Redirecting to login...",
         });
         setTimeout(() => navigate("/login"), 4000);
       } else {
@@ -86,7 +97,8 @@ const SellerRegisterPage = () => {
       }
     } catch (error) {
       const errorMsg =
-        error.response?.data?.message || "An unexpected error occurred.";
+        error.response?.data?.message ||
+        "An unexpected error occurred during registration.";
       setMessage({ type: "error", text: errorMsg });
     } finally {
       setIsLoading(false);
@@ -94,7 +106,7 @@ const SellerRegisterPage = () => {
   };
 
   return (
-    <div className="card" style={{ maxWidth: "700px", margin: "40px auto" }}>
+    <div className="card" style={{ maxWidth: "750px", margin: "40px auto" }}>
       <h2>Register as a Seller</h2>
       <p style={{ color: "var(--text-light)" }}>
         Create a seller account to start managing your products and warranties.
@@ -103,8 +115,8 @@ const SellerRegisterPage = () => {
       <form onSubmit={handleSubmit} noValidate>
         {message && <AlertMessage message={message.text} type={message.type} />}
 
-        {/* Manager Details */}
-        <h3>Manager Details</h3>
+        {/* Manager & Login Details */}
+        <h3 style={{ marginTop: "20px" }}>Login & Manager Details</h3>
         <div
           style={{
             display: "grid",
@@ -113,7 +125,7 @@ const SellerRegisterPage = () => {
           }}
         >
           <div>
-            <label htmlFor="name">Manager's Full Name</label>
+            <label htmlFor="name">Manager's Full Name*</label>
             <input
               type="text"
               name="name"
@@ -125,28 +137,7 @@ const SellerRegisterPage = () => {
             {errors.name && <p className="error-message">{errors.name}</p>}
           </div>
           <div>
-            <label htmlFor="phoneNumber">Manager's Phone</label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              id="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-            />
-          </div>
-        </div>
-
-        {/* Login Credentials */}
-        <h3>Login Credentials</h3>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "20px",
-          }}
-        >
-          <div>
-            <label htmlFor="email">Login Email</label>
+            <label htmlFor="email">Login Email*</label>
             <input
               type="email"
               name="email"
@@ -158,7 +149,7 @@ const SellerRegisterPage = () => {
             {errors.email && <p className="error-message">{errors.email}</p>}
           </div>
           <div>
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">Password*</label>
             <input
               type="password"
               name="password"
@@ -172,7 +163,7 @@ const SellerRegisterPage = () => {
             )}
           </div>
           <div>
-            <label htmlFor="confirmPassword">Confirm Password</label>
+            <label htmlFor="confirmPassword">Confirm Password*</label>
             <input
               type="password"
               name="confirmPassword"
@@ -184,6 +175,16 @@ const SellerRegisterPage = () => {
             {errors.confirmPassword && (
               <p className="error-message">{errors.confirmPassword}</p>
             )}
+          </div>
+          <div>
+            <label htmlFor="phoneNumber">Manager's Phone</label>
+            <input
+              type="tel"
+              name="phoneNumber"
+              id="phoneNumber"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+            />
           </div>
         </div>
 
@@ -197,7 +198,7 @@ const SellerRegisterPage = () => {
           }}
         >
           <div>
-            <label htmlFor="shopName">Shop Name</label>
+            <label htmlFor="shopName">Shop Name*</label>
             <input
               type="text"
               name="shopName"
@@ -211,7 +212,7 @@ const SellerRegisterPage = () => {
             )}
           </div>
           <div>
-            <label htmlFor="businessName">Business Name (Optional)</label>
+            <label htmlFor="businessName">Legal Business Name (Optional)</label>
             <input
               type="text"
               name="businessName"
@@ -221,7 +222,7 @@ const SellerRegisterPage = () => {
             />
           </div>
           <div>
-            <label htmlFor="businessEmail">Business Email</label>
+            <label htmlFor="businessEmail">Business Email*</label>
             <input
               type="email"
               name="businessEmail"
@@ -245,8 +246,8 @@ const SellerRegisterPage = () => {
             />
           </div>
         </div>
-        <div>
-          <label htmlFor="address">Business Address</label>
+        <div style={{ marginTop: "15px" }}>
+          <label htmlFor="address">Business Address*</label>
           <input
             type="text"
             name="address"
@@ -264,7 +265,7 @@ const SellerRegisterPage = () => {
             maxHeight: "150px",
             overflowY: "auto",
             border: "1px solid var(--border-color)",
-            padding: "10px",
+            padding: "15px",
             borderRadius: "4px",
             margin: "20px 0",
             whiteSpace: "pre-wrap",
@@ -292,7 +293,7 @@ const SellerRegisterPage = () => {
           disabled={isLoading || !agreedToTerms}
           style={{ width: "100%" }}
         >
-          {isLoading ? "Registering..." : "Register"}
+          {isLoading ? "Registering..." : "Submit Registration"}
         </button>
       </form>
       <p style={{ marginTop: "20px", textAlign: "center" }}>

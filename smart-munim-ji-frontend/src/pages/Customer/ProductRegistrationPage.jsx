@@ -1,10 +1,11 @@
-// src/pages/Customer/ProductRegistrationPage.js
+// src/pages/Customer/ProductRegistrationPage.jsx
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import apiService from "../../api/apiService";
 import AlertMessage from "../../components/AlertMessage";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { useAuth } from "../../hooks/useAuth";
 
 const ProductRegistrationPage = () => {
   const [sellers, setSellers] = useState([]);
@@ -16,15 +17,16 @@ const ProductRegistrationPage = () => {
   const [isFetchingSellers, setIsFetchingSellers] = useState(true);
   const [message, setMessage] = useState(null);
 
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
+  // Fetch the list of sellers when the component mounts
   useEffect(() => {
     const fetchSellers = async () => {
       try {
-        // API Endpoint: GET /sm/customer/sellers
         const response = await apiService.get("/customer/sellers");
         if (response.data.status === "success") {
-          setSellers(response.data.data.sellers);
+          setSellers(response.data.data.sellers || []); // Ensure sellers is always an array
         } else {
           setMessage({
             type: "error",
@@ -32,17 +34,26 @@ const ProductRegistrationPage = () => {
           });
         }
       } catch (error) {
-        setMessage({
-          type: "error",
-          text: "An error occurred while fetching sellers.",
-        });
+        // Handle authentication errors gracefully
+        if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
+          logout();
+          navigate("/login");
+        } else {
+          setMessage({
+            type: "error",
+            text: "An error occurred while fetching sellers.",
+          });
+        }
       } finally {
         setIsFetchingSellers(false);
       }
     };
 
     fetchSellers();
-  }, []);
+  }, [logout, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -56,7 +67,6 @@ const ProductRegistrationPage = () => {
     setIsLoading(true);
 
     try {
-      // API Endpoint: POST /sm/customer/products/register
       const response = await apiService.post("/customer/products/register", {
         sellerId: Number(selectedSellerId),
         orderId,
@@ -66,10 +76,11 @@ const ProductRegistrationPage = () => {
       if (response.data.status === "success") {
         setMessage({
           type: "success",
-          text: "Product registered successfully! Redirecting...",
+          text: "Product registered successfully! Redirecting to your products list...",
         });
         setTimeout(() => navigate("/customer/products"), 2000);
       } else {
+        // This case is for non-2xx responses that are not exceptions (less common with axios)
         setMessage({
           type: "error",
           text: response.data.message || "Failed to register product.",
@@ -77,13 +88,23 @@ const ProductRegistrationPage = () => {
       }
     } catch (error) {
       if (error.response) {
-        // Special handling for 424 Failed Dependency
+        // Special handling for 424 Failed Dependency (External Seller API failed)
         if (error.response.status === 424) {
           setMessage({
             type: "error",
             text: `Registration failed: ${error.response.data.message}`,
           });
-        } else {
+        }
+        // Handle auth errors that might occur during the POST request itself
+        else if (
+          error.response.status === 401 ||
+          error.response.status === 403
+        ) {
+          logout();
+          navigate("/login");
+        }
+        // Handle all other API errors
+        else {
           setMessage({
             type: "error",
             text:
@@ -91,6 +112,7 @@ const ProductRegistrationPage = () => {
           });
         }
       } else {
+        // Handle network errors (server is down, etc.)
         setMessage({
           type: "error",
           text: "Network error or server is unreachable.",
@@ -101,6 +123,7 @@ const ProductRegistrationPage = () => {
     }
   };
 
+  // Show a loading spinner while fetching the initial list of sellers
   if (isFetchingSellers) {
     return <LoadingSpinner />;
   }
@@ -113,7 +136,7 @@ const ProductRegistrationPage = () => {
         a new product to your account.
       </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         {message && <AlertMessage message={message.text} type={message.type} />}
 
         <div style={{ marginBottom: "20px" }}>
